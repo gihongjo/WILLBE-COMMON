@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.7'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'maven-publish'
+
 }
 
 group = 'com.willbe'
@@ -25,13 +27,81 @@ repositories {
 }
 
 dependencies {
+    // Spring Boot platform
+    implementation platform('org.springframework.boot:spring-boot-dependencies:3.5.7')
+
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+	implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.2'
+	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.2'
+	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.2'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        gpr(MavenPublication) {
+            from components.java
+
+            groupId = 'com.willbe'
+            artifactId = 'willbe-common'
+            version = project.version
+
+            pom {
+                name = 'Company Common Library'
+                description = 'Common library for microservices'
+                url = 'https://github.com/gihongjo/willbe-common'
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'gihongjo'
+                        name = 'gihongjo'
+                        email = 'gihongjo@gmail.com'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:git://github.com/gihongjo/willbe-common.git'
+                    developerConnection = 'scm:git:ssh://github.com/gihongjo/willbe-common.git'
+                    url = 'https://github.com/gihongjo/willbe-common'
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/gihongjo/willbe-common")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.token") ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
+
+
 
 tasks.named('test') {
     useJUnitPlatform()
